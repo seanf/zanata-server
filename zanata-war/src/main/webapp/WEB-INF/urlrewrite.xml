@@ -4,15 +4,15 @@
 
 <urlrewrite>
 
-  <!-- Disable the Red Hat crawler -->
   <rule>
+    <name>Disable the Red Hat crawler</name>
     <condition name="remote-addr">66.187.233.202</condition>
     <from>.*</from>
     <to last="true" type="temporary-redirect">/robots.txt</to>
   </rule>
 
-  <!-- Disable anything that comes out of Microsoft -->
   <rule>
+    <name>Disable anything that comes out of Microsoft</name>
     <condition name="remote-addr">65.55.210.81</condition>
     <from>.*</from>
     <to last="true" type="temporary-redirect">/robots.txt</to>
@@ -77,8 +77,6 @@
     </to>
   </rule>
 
-
-
   <rule>
     <from casesensitive="true">^/iteration/source_files/([^/]+)/([^/]+)/?$
     </from>
@@ -119,6 +117,12 @@
   <rule>
     <from casesensitive="true">^/account/klogin(\?.+)?$</from>
     <to last="true">/account/klogin.seam$1</to>
+  </rule>
+
+  <rule>
+    <name>Redirect from old sign in form</name>
+    <from casesensitive="true">^/account/sign_form(.+)?$</from>
+    <to last="true">/account/login.seam$1</to>
   </rule>
 
   <rule>
@@ -289,6 +293,17 @@
     <from casesensitive="true">^/javax.faces.resource/jars/assets/(.*)(?&lt;!.seam)$</from>
     <to last="true">/javax.faces.resource/jars/assets/$1.seam</to>
   </rule>
+
+  <rule>
+    <name>Redirect 404 through seam</name>
+    <from casesensitive="true">^/404.*$</from>
+    <to last="true">/404.seam</to>
+  </rule>
+
+  <outbound-rule>
+    <from>^(/.+)?/404.seam(.+)?$</from>
+    <to>$1/404/$2</to>
+  </outbound-rule>
 
   <outbound-rule>
     <from>^(/.+)?/dashboard/home.seam(.+)?$</from>

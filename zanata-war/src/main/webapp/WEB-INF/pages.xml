@@ -441,6 +441,9 @@
   </page>
 
   <!-- TODO [CDI] we will probably use something like this http://stackoverflow.com/a/18411362/345718 -->
+  <page view-id="/404.xhtml">
+  </page>
+
   <!-- Exceptions -->
   <exception class="org.zanata.exception.KeyNotFoundException"
     log-level="warn">
@@ -460,7 +463,7 @@
 
   <exception class="org.jboss.seam.framework.EntityNotFoundException"
     log-level="warn">
-    <redirect view-id="/error.xhtml">
+    <redirect view-id="/404.xhtml">
       <message severity="warn">#{msgs['jsf.RecordNotFound']}</message>
     </redirect>
   </exception>
