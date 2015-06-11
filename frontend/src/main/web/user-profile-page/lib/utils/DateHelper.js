@@ -27,10 +27,18 @@ var DateHelper = {
         fromDate = moment().month(now.month() - 1).date(1);
         toDate = moment().date(0);
         break;
-      default:
-        console.error('selectedDateRange [%s] can not be matched. Using (This Week) instead.', dateRangeOption);
-        fromDate = moment().weekday(0);
+      case 'One Year':
+        fromDate = moment().year(now.year() - 1);
         toDate = moment();
+        break;
+      default:
+        var theMonth = moment(dateRangeOption, 'YYYY-MM');
+        fromDate = theMonth;
+        toDate = moment(theMonth).month(theMonth.month() + 1).date(0);
+        console.info('fromDate: %s toDate %s', fromDate.format(dateFormat), toDate.format(dateFormat));
+        //console.error('selectedDateRange [%s] can not be matched. Using (This Week) instead.', dateRangeOption);
+        //fromDate = moment().weekday(0);
+        //toDate = moment();
     }
 
     range = moment().range(fromDate, toDate);

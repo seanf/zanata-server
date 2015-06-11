@@ -8,6 +8,8 @@ import ActionTypes from '../constants/ActionTypes';
 import Configs from '../constants/Configs';
 import utilsDate from '../utils/DateHelper';
 import Request from 'superagent';
+import moment from 'moment';
+import _ from 'lodash';
 
 var CHANGE_EVENT = "change";
 
@@ -75,7 +77,7 @@ function handleServerResponse(serverResponse) {
  */
 function transformToTotalWordCountsForEachDay(listOfMatrices, dateRange) {
   var datesOfThisPeriod = dateRange['dates'],
-    result = [],
+    result = [], matrixForMonth = {},
     index = 0;
 
   datesOfThisPeriod.forEach(function (dateStr) {
@@ -100,14 +102,27 @@ function transformToTotalWordCountsForEachDay(listOfMatrices, dateRange) {
       entry = listOfMatrices[index] || {}
     }
 
+    var matrixForDate = {
+      date: dateStr,
+      totalApproved: totalApproved,
+      totalTranslated: totalTranslated,
+      totalNeedsWork: totalNeedsWork,
+      totalActivity: totalApproved + totalNeedsWork + totalTranslated
+    };
+
+    var theMonth = moment(dateStr).format('YYYY-MM');
+    matrixForMonth[theMonth] = matrixForMonth[theMonth] || 0;
+    matrixForMonth[theMonth] += matrixForDate.totalActivity;
+
+
     result.push(
-      {
-        date: dateStr,
-        totalApproved: totalApproved,
-        totalTranslated: totalTranslated,
-        totalNeedsWork: totalNeedsWork,
-        totalActivity: totalApproved + totalNeedsWork + totalTranslated
-      });
+      matrixForDate);
+  });
+
+  _.forOwn(matrixForMonth, function(value, key) {
+    if (value > 0) {
+      console.info('=== %s: %d', key, value);
+    }
   });
 
   return result;
