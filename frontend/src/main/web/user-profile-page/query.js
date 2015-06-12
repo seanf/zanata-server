@@ -1,12 +1,12 @@
-import Dispatcher from '../dispatchers/UserMatrixDispatcher';
+import Dispatcher from 'lib/dispatchers/UserMatrixDispatcher';
 import assign from 'object-assign';
 import {Promise} from 'es6-promise';
 import {EventEmitter} from 'events';
-import {ContentStates} from '../constants/Options';
-import {DateRanges} from '../constants/Options';
-import ActionTypes from '../constants/ActionTypes';
-import Configs from '../constants/Configs';
-import utilsDate from '../utils/DateHelper';
+import {ContentStates} from 'lib/constants/Options';
+import {DateRanges} from 'lib/constants/Options';
+import ActionTypes from 'lib/constants/ActionTypes';
+import Configs from 'lib/constants/Configs';
+import utilsDate from 'lib/utils/DateHelper';
 import Request from 'superagent';
 import moment from 'moment';
 import _ from 'lodash';
@@ -58,11 +58,6 @@ function handleServerResponse(serverResponse) {
     contentState = _state['contentStateOption'],
     selectedDay = _state['selectedDay'];
 
-  _state['matrix'] = serverResponse;
-  _state['matrixForAllDays'] = wordCountsForEachDay;
-  _state['wordCountsForEachDayFilteredByContentState'] = mapTotalWordCountByContentState(wordCountsForEachDay, contentState);
-  _state['wordCountsForSelectedDayFilteredByContentState'] = filterByContentStateAndDay(_state['matrix'], contentState, selectedDay);
-  //console.log('handle server response:' + _state);
   return _state;
 }
 
@@ -229,37 +224,26 @@ var UserMatrixStore = assign({}, EventEmitter.prototype, {
     this.removeListener(CHANGE_EVENT, callback);
   },
 
-  dispatchToken: Dispatcher.register(function(payload) {
-    var action = payload.action;
-    switch (action['actionType']) {
-      case ActionTypes.DATE_RANGE_UPDATE:
-        console.log('date range from %s -> %s', _state['dateRangeOption'], action.data);
-        _state['dateRangeOption'] = action.data;
-        _state['selectedDay'] = null;
-        loadFromServer()
-          .then(handleServerResponse)
-          .then(function(newState) {
-            UserMatrixStore.emitChange();
-          })
-          .catch(function(err) {
-            console.error('something bad happen:' + err.stack);
-          });
-        break;
-      case ActionTypes.CONTENT_STATE_UPDATE:
-        console.log('content state from %s -> %s', _state['contentStateOption'], action.data);
-        _state['contentStateOption'] = action.data;
-        _state['wordCountsForEachDayFilteredByContentState'] = mapTotalWordCountByContentState(_state['matrixForAllDays'], _state['contentStateOption']);
-        _state['wordCountsForSelectedDayFilteredByContentState'] = filterByContentStateAndDay(_state['matrix'], _state['contentStateOption'], _state['selectedDay']);
-        UserMatrixStore.emitChange();
-        break;
-      case ActionTypes.DAY_SELECTED:
-        console.log('day selection from %s -> %s', _state['selectedDay'], action.data);
-        _state['selectedDay'] = action.data;
-        _state['wordCountsForSelectedDayFilteredByContentState'] = filterByContentStateAndDay(_state['matrix'], _state['contentStateOption'], _state['selectedDay']);
-        UserMatrixStore.emitChange();
-        break;
-    }
-  })
+  query: function() {
+    _state['dateRangeOption'] = 'One Year';
+    _state['selectedDay'] = null;
+    loadFromServer()
+      .then(handleServerResponse)
+      .then(function(newState) {
+          console.info('=======================');
+      })
+      .catch(function(err) {
+        console.error('something bad happen:' + err.stack);
+      });
+  }
 });
 
-export default UserMatrixStore;
+var server = process.argv[2];
+var url = server + '/rest/stats/user/';
+var usernames = process.argv[3].split(',');
+usernames.forEach(function(username) {
+  Configs.baseUrl = url + username + '/';
+  console.info('===== For user: %s =====', username);
+  UserMatrixStore.query();
+});
+

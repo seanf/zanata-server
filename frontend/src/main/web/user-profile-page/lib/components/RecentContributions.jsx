@@ -39,9 +39,7 @@ var RecentContributions = React.createClass(
             </div>
             <h2 className='delta txt--uppercase'>Recent Contributions</h2>
           </div>
-          <div className="l--push-bottom-1">
-            <ContributionChart wordCountForEachDay={this.state.matrixForAllDays} dateRangeOption={this.state.dateRangeOption} />
-          </div>
+
           <FilterableMatrixTable
             wordCountForSelectedDay={this.state.wordCountsForSelectedDayFilteredByContentState}
             wordCountForEachDay={this.state.wordCountsForEachDayFilteredByContentState}

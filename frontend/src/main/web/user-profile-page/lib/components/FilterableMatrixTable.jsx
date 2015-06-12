@@ -54,9 +54,6 @@ var FilterableMatrixTable = React.createClass({
         <ContentStateFilter selectedContentState={selectedContentState}  />
         <div className="g">
           <div className="g__item w--1-2-l w--1-2-h">
-            <CalendarMonthMatrix matrixData={this.props.wordCountForEachDay} selectedDay={selectedDay} selectedContentState={selectedContentState} dateRangeOption={this.props.dateRangeOption} />
-          </div>
-          <div className="g__item w--1-2-l w--1-2-h">
             <CalendarPeriodHeading fromDate={this.props.fromDate} toDate={this.props.toDate} dateRange={this.props.dateRangeOption} selectedDay={selectedDay}/>
             {categoryTables}
           </div>
