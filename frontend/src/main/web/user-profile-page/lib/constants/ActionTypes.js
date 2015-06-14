@@ -1,4 +1,4 @@
-import keymirror from 'keymirror';
+var keymirror = require( 'keymirror');
 
 var ActionTypes = keymirror({
   DATE_RANGE_UPDATE: null,
@@ -6,4 +6,4 @@ var ActionTypes = keymirror({
   DAY_SELECTED: null
 });
 
-export default ActionTypes;
+module.exports = ActionTypes;

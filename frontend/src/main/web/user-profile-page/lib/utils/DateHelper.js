@@ -1,4 +1,4 @@
-import moment from 'moment-range';
+var moment = require( 'moment-range');
 
 var DateHelper = {
   dateFormat: 'YYYY-MM-DD',
@@ -73,4 +73,4 @@ var DateHelper = {
   }
 };
 
-export default DateHelper;
+module.exports = DateHelper;

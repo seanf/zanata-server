@@ -1,15 +1,15 @@
-import Dispatcher from '../dispatchers/UserMatrixDispatcher';
-import assign from 'object-assign';
-import {Promise} from 'es6-promise';
-import {EventEmitter} from 'events';
-import {ContentStates} from '../constants/Options';
-import {DateRanges} from '../constants/Options';
-import ActionTypes from '../constants/ActionTypes';
-import Configs from '../constants/Configs';
-import utilsDate from '../utils/DateHelper';
-import Request from 'superagent';
-import moment from 'moment';
-import _ from 'lodash';
+var Dispatcher = require('../dispatchers/UserMatrixDispatcher');
+var assign = require('object-assign');
+var Promise = require('es6-promise').Promise;
+var EventEmitter = require('events').EventEmitter;
+var ContentStates = require('../constants/Options').ContentStates;
+var DateRanges = require('../constants/Options').DateRanges;
+var ActionTypes = require( '../constants/ActionTypes');
+var Configs = require( '../constants/Configs');
+var utilsDate = require( '../utils/DateHelper');
+var Request = require( 'superagent');
+var moment = require( 'moment');
+var _ = require( 'lodash');
 
 var CHANGE_EVENT = "change";
 

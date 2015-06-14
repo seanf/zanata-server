@@ -1,15 +1,14 @@
-import Dispatcher from 'lib/dispatchers/UserMatrixDispatcher';
-import assign from 'object-assign';
-import {Promise} from 'es6-promise';
-import {EventEmitter} from 'events';
-import {ContentStates} from 'lib/constants/Options';
-import {DateRanges} from 'lib/constants/Options';
-import ActionTypes from 'lib/constants/ActionTypes';
-import Configs from 'lib/constants/Configs';
-import utilsDate from 'lib/utils/DateHelper';
-import Request from 'superagent';
-import moment from 'moment';
-import _ from 'lodash';
+var assign = require('object-assign');
+var Promise = require('es6-promise').Promise;
+var EventEmitter = require('events').EventEmitter;
+var ContentStates = require('./lib/constants/Options').ContentStates;
+var DateRanges = require('./lib/constants/Options').DateRanges;
+var ActionTypes = require( './lib/constants/ActionTypes');
+var Configs = require( './lib/constants/Configs');
+var utilsDate = require( './lib/utils/DateHelper');
+var Request = require( 'superagent');
+var moment = require( 'moment');
+var _ = require( 'lodash');
 
 var CHANGE_EVENT = "change";
 
@@ -224,13 +223,17 @@ var UserMatrixStore = assign({}, EventEmitter.prototype, {
     this.removeListener(CHANGE_EVENT, callback);
   },
 
-  query: function() {
+  query: function(username) {
     _state['dateRangeOption'] = 'One Year';
     _state['selectedDay'] = null;
     loadFromServer()
+      .then(function(response) {
+        console.info('===== %s =====', username);
+        return response;
+      })
       .then(handleServerResponse)
       .then(function(newState) {
-          console.info('=======================');
+          console.info('');
       })
       .catch(function(err) {
         console.error('something bad happen:' + err.stack);
@@ -243,7 +246,6 @@ var url = server + '/rest/stats/user/';
 var usernames = process.argv[3].split(',');
 usernames.forEach(function(username) {
   Configs.baseUrl = url + username + '/';
-  console.info('===== For user: %s =====', username);
-  UserMatrixStore.query();
-});
 
+  UserMatrixStore.query(username);
+});

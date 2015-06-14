@@ -2,4 +2,4 @@ var Configs = {
   baseUrl: null
 };
 
-export default Configs
+module.exports = Configs
