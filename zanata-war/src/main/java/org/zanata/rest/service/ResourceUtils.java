@@ -1138,7 +1138,7 @@ public class ResourceUtils {
                 return Integer.parseInt(nPluralsString);
             }
         }
-        throw new PluralParseException("can't find valid nplurals in plural forms header");
+        throw new PluralParseException("can't find valid nplurals in plural forms string: " + pluralForms);
     }
 
     /**
