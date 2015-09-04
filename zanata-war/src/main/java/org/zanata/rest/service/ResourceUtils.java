@@ -1490,7 +1490,7 @@ public class ResourceUtils {
         }
     }
 
-    public class PluralParseException extends RuntimeException {
+    public static class PluralParseException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
         public PluralParseException(String string) {
