@@ -42,7 +42,7 @@
     <weld.se.version>${weld.version}</weld.se.version>
     <guava.version>18.0</guava.version>
     <gwt.version>2.6.1</gwt.version>
-    <icu4j.version>50.1.1</icu4j.version>
+    <icu4j.version>55.1</icu4j.version>
     <lombok.source.dir>${project.build.sourceDirectory}/org/zanata</lombok.source.dir>
     <lucene.version>3.6.2</lucene.version>
     <org.mock-server.version>3.9.17</org.mock-server.version>
@@ -81,7 +81,7 @@
     <seam.version>2.3.1.Final</seam.version>
     <slf4j.version>1.7.12</slf4j.version>
     <gwteventservice.version>1.2.1</gwteventservice.version>
-    <okapi.version>0.22</okapi.version>
+    <okapi.version>0.29-SNAPSHOT</okapi.version>
 
     <zanata.assets.version>8.0-SNAPSHOT</zanata.assets.version>
     <zanata.api.version>3.8.0-SNAPSHOT</zanata.api.version>
@@ -289,7 +289,12 @@
         <version>${slf4j.version}</version>
         <scope>provided</scope>
       </dependency>
-
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>provided</scope>
+      </dependency>
       <dependency>
         <groupId>org.jboss.spec</groupId>
         <artifactId>jboss-javaee-6.0</artifactId>
@@ -894,6 +899,17 @@
       </dependency>
 
       <dependency>
+        <groupId>net.sf.okapi.filters</groupId>
+        <artifactId>okapi-filter-ts</artifactId>
+        <version>${okapi.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>net.sf.okapi.logbind</groupId>
+              <artifactId>build-log4j</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>net.sf.okapi.steps</groupId>
         <artifactId>okapi-step-tokenization</artifactId>
         <version>${okapi.version}</version>
@@ -1318,6 +1334,17 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
+      <repository>
+          <id>okapi-cloudbees-snapshot</id>
+          <name>okapi-cloudbees-snapshot</name>
+          <url>http://repository-okapi.forge.cloudbees.com/snapshot/</url>
+          <releases>
+              <enabled>false</enabled>
+          </releases>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+      </repository>
     <!-- Needed for totallylazy -->
     <repository>
       <id>repo.bodar.com</id>
@@ -1328,6 +1355,11 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
+    </repository>
+    <!-- For Okapi and Jericho  -->
+    <repository>
+      <id>repo.bitbucket.org</id>
+      <url>https://bitbucket.org/okapiframework/maven-repo/src/99bd1e4bef88</url>
     </repository>
   </repositories>
 
