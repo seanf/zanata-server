@@ -38,6 +38,8 @@ import org.zanata.util.HasEmailRule;
 import org.zanata.util.ZanataRestCaller;
 import org.zanata.workflow.LoginWorkFlow;
 
+import java.util.stream.IntStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.zanata.util.ZanataRestCaller.buildSourceResource;
 import static org.zanata.util.ZanataRestCaller.buildTextFlow;
@@ -57,14 +59,14 @@ public class DashboardTest extends ZanataTestCase {
         Resource resource =
                 buildSourceResource("a", buildTextFlow("res1", "content"));
         // create 6 activities
-        for (int i = 0; i < 6; i++) {
+        IntStream.range(0, 6).forEach(i -> {
             String projectSlug = "activity" + i;
             String iterationSlug = "v" + i;
             restCaller.createProjectAndVersion(projectSlug, iterationSlug,
                     "gettext");
             restCaller.postSourceDocResource(projectSlug, iterationSlug,
                     resource, false);
-        }
+        });
         dashboard = new LoginWorkFlow().signIn("admin", "admin");
     }
 

@@ -18,6 +18,7 @@ import org.zanata.util.SampleProjectRule;
 import org.zanata.util.ZanataRestCaller;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.zanata.util.ZanataRestCaller.*;
 
@@ -96,20 +97,16 @@ public class CopyTransTuningTest {
     }
 
     private static TextFlow[] generateTextFlows(int numOfTextFlows) {
-        TextFlow[] textFlows = new TextFlow[numOfTextFlows];
-        for (int i = 0; i < textFlows.length; i++) {
-            textFlows[i] = buildTextFlow("res" + i,
-                    RandomStringUtils.randomAlphabetic(10));
-        }
-        return textFlows;
+        return IntStream.range(0, numOfTextFlows).boxed().map(i ->
+            buildTextFlow("res" + i,
+                    RandomStringUtils.randomAlphabetic(10))
+        ).toArray(TextFlow[]::new);
     }
 
     private static TextFlowTarget[] generateTextFlowTargets(int numOfTargets) {
-        TextFlowTarget[] targets = new TextFlowTarget[numOfTargets];
-        for (int i = 0; i < targets.length; i++) {
-            targets[i] = buildTextFlowTarget("res" + i, "translation no. " + i);
-        }
-        return targets;
+        return IntStream.range(0, numOfTargets).boxed().map(i ->
+                        buildTextFlowTarget("res" + i, "translation no. " + i)
+        ).toArray(TextFlowTarget[]::new);
     }
 
     private void pushSource(String iterationSlug) {
