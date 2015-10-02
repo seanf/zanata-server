@@ -212,27 +212,18 @@ public class RateLimitRestAndUITest extends ZanataTestCase {
 
         // requests from translator user
         final int translatorThreads = 3;
-        Callable<Integer> translatorTask = new Callable<Integer>() {
-
-            @Override
-            public Integer call() {
-                return invokeRestService(new ZanataRestCaller(TRANSLATOR,
-                        TRANSLATOR_API), projectSlug, iterationSlug,
-                        atomicInteger);
-            }
-        };
+        Callable<Integer> translatorTask = () ->
+                invokeRestService(
+                        new ZanataRestCaller(TRANSLATOR, TRANSLATOR_API),
+                        projectSlug, iterationSlug, atomicInteger);
         List<Callable<Integer>> translatorTasks =
                 Collections.nCopies(translatorThreads, translatorTask);
 
         // requests from admin user
         int adminThreads = 2;
-        Callable<Integer> adminTask = new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                return invokeRestService(new ZanataRestCaller(), projectSlug,
-                        iterationSlug, atomicInteger);
-            }
-        };
+        Callable<Integer> adminTask = () ->
+                invokeRestService(new ZanataRestCaller(),
+                        projectSlug, iterationSlug, atomicInteger);
 
         List<Callable<Integer>> adminTasks =
                 Collections.nCopies(adminThreads, adminTask);
@@ -317,21 +308,18 @@ public class RateLimitRestAndUITest extends ZanataTestCase {
     private static List<Integer> getResultStatusCodes(
             List<Future<Integer>> futures) {
         return Lists.transform(futures,
-                new Function<Future<Integer>, Integer>() {
-                    @Override
-                    public Integer apply(Future<Integer> input) {
-                        try {
-                            return input.get();
-                        } catch (Exception e) {
-                            // by using filter we lose RESTeasy's exception
-                            // translation
-                            String message = e.getMessage().toLowerCase();
-                            if (message
-                                    .matches(".+429.+too many concurrent request.+")) {
-                                return 429;
-                            }
-                            throw Throwables.propagate(e);
+                input -> {
+                    try {
+                        return input.get();
+                    } catch (Exception e) {
+                        // by using filter we lose RESTeasy's exception
+                        // translation
+                        String message = e.getMessage().toLowerCase();
+                        if (message
+                                .matches(".+429.+too many concurrent request.+")) {
+                            return 429;
                         }
+                        throw Throwables.propagate(e);
                     }
                 });
     }

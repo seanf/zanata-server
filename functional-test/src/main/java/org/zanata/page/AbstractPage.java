@@ -99,14 +99,11 @@ public class AbstractPage {
 
     public Alert switchToAlert() {
         return waitForAMoment().withMessage("alert").until(
-                new Function<WebDriver, Alert>() {
-                    @Override
-                    public Alert apply(WebDriver driver) {
-                        try {
-                            return getDriver().switchTo().alert();
-                        } catch (NoAlertPresentException noAlertPresent) {
-                            return null;
-                        }
+                (WebDriver driver) -> {
+                    try {
+                        return getDriver().switchTo().alert();
+                    } catch (NoAlertPresentException noAlertPresent) {
+                        return null;
                     }
                 });
     }
@@ -158,28 +155,25 @@ public class AbstractPage {
         String msg = "new page load";
         logWaiting(msg);
         waitForAMoment().withMessage(msg).until(
-                new Predicate<WebDriver>() {
-                    @Override
-                    public boolean apply(WebDriver input) {
-                        try {
-                            // ignore result
-                            oldPage.getAttribute("class");
-                            // if we get here, the old page is still there
-                            return false;
-                        } catch (StaleElementReferenceException e) {
-                            // http://www.obeythetestinggoat.com/how-to-get-selenium-to-wait-for-page-load-after-a-click.html
-                            //
-                            // This exception means the new page has loaded
-                            // (or started to).
-                            String script = "return document.readyState === " +
-                                    "'complete' && window.javascriptFinished";
-                            Boolean documentComplete =
-                                    (Boolean) getExecutor().executeScript(
-                                            script);
-                            // TODO wait for ajax?
-                            // NB documentComplete might be null/undefined
-                            return documentComplete == Boolean.TRUE;
-                        }
+                (WebDriver input) -> {
+                    try {
+                        // ignore result
+                        oldPage.getAttribute("class");
+                        // if we get here, the old page is still there
+                        return false;
+                    } catch (StaleElementReferenceException e) {
+                        // http://www.obeythetestinggoat.com/how-to-get-selenium-to-wait-for-page-load-after-a-click.html
+                        //
+                        // This exception means the new page has loaded
+                        // (or started to).
+                        String script = "return document.readyState === " +
+                                "'complete' && window.javascriptFinished";
+                        Boolean documentComplete =
+                                (Boolean) getExecutor().executeScript(
+                                        script);
+                        // TODO wait for ajax?
+                        // NB documentComplete might be null/undefined
+                        return documentComplete == Boolean.TRUE;
                     }
                 });
         logFinished(msg);
@@ -210,36 +204,33 @@ public class AbstractPage {
             script = "return XMLHttpRequest.active";
         }
         // Wait for AJAX/timeout requests to be 0
-        waitForAMoment().withMessage("page silence").until(new Predicate<WebDriver>() {
-            @Override
-            public boolean apply(WebDriver input) {
-                Long outstanding = (Long) getExecutor().executeScript(script);
-                if (outstanding == null) {
-                    if (log.isWarnEnabled()) {
-                        String url = getDriver().getCurrentUrl();
-                        String pageSource = ShortString.shorten(
-                                getDriver().getPageSource(), 2000);
-                        log.warn("XMLHttpRequest.active is null. Is AjaxCounterBean missing? URL: {}\nPartial page source follows:\n{}", url, pageSource);
-                    }
-                    return true;
+        waitForAMoment().withMessage("page silence").until((WebDriver input) -> {
+            Long outstanding = (Long) getExecutor().executeScript(script);
+            if (outstanding == null) {
+                if (log.isWarnEnabled()) {
+                    String url = getDriver().getCurrentUrl();
+                    String pageSource = ShortString.shorten(
+                            getDriver().getPageSource(), 2000);
+                    log.warn("XMLHttpRequest.active is null. Is AjaxCounterBean missing? URL: {}\nPartial page source follows:\n{}", url, pageSource);
                 }
-                if (outstanding < 0) {
-                    throw new RuntimeException("XMLHttpRequest.active " +
-                            "and/or window.timeoutCounter " +
-                            "is negative.  Please ensure that " +
-                            "AjaxCounterBean's script is run before " +
-                            "any other JavaScript in the page.");
-                }
-                int expected = getExpectedBackgroundRequests();
-                if (outstanding < expected) {
-                    log.warn(
-                            "Expected at least {} background requests, but actual count is {}",
-                            expected, outstanding, new Throwable());
-                } else {
-                    log.debug("Waiting: outstanding = {}, expected = {}", outstanding, expected);
-                }
-                return outstanding <= expected;
+                return true;
             }
+            if (outstanding < 0) {
+                throw new RuntimeException("XMLHttpRequest.active " +
+                        "and/or window.timeoutCounter " +
+                        "is negative.  Please ensure that " +
+                        "AjaxCounterBean's script is run before " +
+                        "any other JavaScript in the page.");
+            }
+            int expected = getExpectedBackgroundRequests();
+            if (outstanding < expected) {
+                log.warn(
+                        "Expected at least {} background requests, but actual count is {}",
+                        expected, outstanding, new Throwable());
+            } else {
+                log.debug("Waiting: outstanding = {}, expected = {}", outstanding, expected);
+            }
+            return outstanding <= expected;
         });
         waitForLoaders();
     }
@@ -249,24 +240,21 @@ public class AbstractPage {
      */
     private void waitForLoaders() {
         waitForAMoment().withMessage("Loader indicator").until(
-                new Predicate<WebDriver>() {
-            @Override
-            public boolean apply(WebDriver input) {
-                // Find all elements with class name js-loader, or return []
-                String script = "return (typeof $ == 'undefined') ?  [] : " +
-                        "$('.js-loader').toArray()";
-                @SuppressWarnings("unchecked")
-                List<WebElement> loaders = (List<WebElement>) getExecutor()
-                        .executeScript(script);
-                for (WebElement loader : loaders) {
-                    if (loader.getAttribute("class").contains("is-active")) {
-                        log.info("Wait for loader finished");
-                        return false;
+                (WebDriver input) -> {
+                    // Find all elements with class name js-loader, or return []
+                    String script = "return (typeof $ == 'undefined') ?  [] : " +
+                            "$('.js-loader').toArray()";
+                    @SuppressWarnings("unchecked")
+                    List<WebElement> loaders = (List<WebElement>) getExecutor()
+                            .executeScript(script);
+                    for (WebElement loader : loaders) {
+                        if (loader.getAttribute("class").contains("is-active")) {
+                            log.info("Wait for loader finished");
+                            return false;
+                        }
                     }
-                }
-                return true;
-            }
-        });
+                    return true;
+                });
     }
 
     /**
@@ -311,12 +299,8 @@ public class AbstractPage {
         String msg = "element exists " + elementBy;
         logWaiting(msg);
         waitForPageSilence();
-        return waitForAMoment().until(new Function<WebDriver, WebElement>() {
-            @Override
-            public WebElement apply(WebDriver input) {
-                return getDriver().findElement(elementBy);
-            }
-        });
+        return waitForAMoment().until((WebDriver input) ->
+                getDriver().findElement(elementBy));
     }
 
     /**
@@ -331,12 +315,8 @@ public class AbstractPage {
         String msg = "element exists " + elementBy;
         logWaiting(msg);
         waitForPageSilence();
-        return waitForAMoment().until(new Function<WebDriver, WebElement>() {
-            @Override
-            public WebElement apply(WebDriver input) {
-                return parentElement.findElement(elementBy);
-            }
-        });
+        return waitForAMoment().until((WebDriver input) ->
+                parentElement.findElement(elementBy));
     }
 
     /**
@@ -411,17 +391,14 @@ public class AbstractPage {
         }
         if (check) {
             waitForAMoment().withMessage("Text equal to entered")
-                    .until(new Predicate<WebDriver>() {
-                        @Override
-                        public boolean apply(WebDriver input) {
-                            String text = element.getAttribute("value");
-                            if (!text.equals(text)) {
-                                log.info("Found: {}", text);
-                                triggerScreenshot("_textWaiting");
-                                return false;
-                            }
-                            return true;
+                    .until((WebDriver input) -> {
+                        String text1 = element.getAttribute("value");
+                        if (!text1.equals(text1)) {
+                            log.info("Found: {}", text1);
+                            triggerScreenshot("_textWaiting");
+                            return false;
                         }
+                        return true;
                     });
         } else {
             log.info("Not checking text entered");
@@ -431,12 +408,7 @@ public class AbstractPage {
 
     private void waitForElementReady(final WebElement element) {
          waitForAMoment().withMessage("Waiting for element to be ready").until(
-                new Predicate<WebDriver>() {
-                @Override
-                public boolean apply(WebDriver input) {
-                    return element.isDisplayed() && element.isEnabled();
-                }
-         });
+                 (WebDriver input) -> element.isDisplayed() && element.isEnabled());
     }
 
     // Assert the element is available and visible
@@ -486,20 +458,17 @@ public class AbstractPage {
         final String script = "return (typeof $ == 'undefined') ?  [] : " +
                 "$('ul.message--global').toArray()";
         final String message = "Waiting for notifications box to go";
-        waitForAMoment().withMessage(message).until(new Predicate<WebDriver>() {
-            @Override
-            public boolean apply(WebDriver input) {
-                @SuppressWarnings("unchecked")
-                List<WebElement> boxes = (List<WebElement>) getExecutor()
-                        .executeScript(script);
-                for (WebElement box : boxes) {
-                    if (box.isDisplayed()) {
-                        log.info(message);
-                        return false;
-                    }
+        waitForAMoment().withMessage(message).until((WebDriver input) -> {
+            @SuppressWarnings("unchecked")
+            List<WebElement> boxes = (List<WebElement>) getExecutor()
+                    .executeScript(script);
+            for (WebElement box : boxes) {
+                if (box.isDisplayed()) {
+                    log.info(message);
+                    return false;
                 }
-                return true;
             }
+            return true;
         });
     }
 

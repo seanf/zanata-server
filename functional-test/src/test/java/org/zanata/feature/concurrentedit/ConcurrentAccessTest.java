@@ -75,15 +75,11 @@ public class ConcurrentAccessTest extends ZanataTestCase {
                 iterationSlug, "gettext");
 
         int threadCount = 5;
-        Callable<Integer> task = new Callable<Integer>() {
-
-            @Override
-            public Integer call() throws Exception {
-                int suffix = counter.getAndIncrement();
-                return new ZanataRestCaller().postSourceDocResource(
-                        projectSlug, iterationSlug, buildResource(suffix),
-                        false);
-            }
+        Callable<Integer> task = () -> {
+            int suffix = counter.getAndIncrement();
+            return new ZanataRestCaller().postSourceDocResource(
+                    projectSlug, iterationSlug, buildResource(suffix),
+                    false);
         };
         List<Callable<Integer>> tasks = Collections.nCopies(threadCount, task);
         ExecutorService executorService =
@@ -105,21 +101,13 @@ public class ConcurrentAccessTest extends ZanataTestCase {
 
     private static List<Integer> getStatusCodes(List<Future<Integer>> futures) {
         return Lists.transform(futures,
-                new Function<Future<Integer>, Integer>() {
-
-                    @Override
-                    public Integer apply(Future<Integer> input) {
-                        return getResult(input);
-                    }
-                });
+                ConcurrentAccessTest::getResult);
     }
 
     private static Integer getResult(Future<Integer> input) {
         try {
             return input.get();
-        } catch (InterruptedException e) {
-            throw Throwables.propagate(e);
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             throw Throwables.propagate(e);
         }
     }

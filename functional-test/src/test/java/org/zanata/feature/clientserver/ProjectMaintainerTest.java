@@ -40,6 +40,7 @@ import org.zanata.workflow.ClientWorkFlow;
 import org.zanata.workflow.LoginWorkFlow;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
@@ -62,12 +63,7 @@ public class ProjectMaintainerTest extends ZanataTestCase {
     private File projectRootPath = client.getProjectRootPath("plural");
     private String translatorConfig = ClientWorkFlow
             .getUserConfigPath("translator");
-    private FilenameFilter propFilter = new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-            return name.endsWith(".properties");
-        }
-    };
+    private FileFilter propFilter = (f) -> f.getName().endsWith(".properties");
 
     @Feature(summary = "A non-maintainer user may not push to a project",
             tcmsTestPlanIds = 5316, tcmsTestCaseIds = 91146)
