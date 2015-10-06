@@ -23,6 +23,8 @@ package org.zanata.model;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -36,6 +38,7 @@ import javax.persistence.PreRemove;
 import javax.persistence.PreUpdate;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import javax.persistence.Version;
 
 import lombok.extern.slf4j.Slf4j;
@@ -94,6 +97,10 @@ public class ModelEntityBase implements Serializable, HashableState {
         this.creationDate = creationDate;
     }
 
+    @Transient
+    public Instant getCreationInstant() {
+        return creationDate.toInstant();
+    }
 
     // TODO extract lastChanged from ModelEntityBase and use with @Embedded
     // NB: also used in HSimpleComment
@@ -107,6 +114,16 @@ public class ModelEntityBase implements Serializable, HashableState {
 
     public void setLastChanged(Date lastChanged) {
         this.lastChanged = lastChanged;
+    }
+
+    @Transient
+    public Instant getLastChangedInstant() {
+        return lastChanged.toInstant();
+    }
+
+    @Transient
+    public void setLastChangedInstant(Instant lastChanged) {
+        this.lastChanged = Date.from(lastChanged);
     }
 
     @Override

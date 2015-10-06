@@ -23,6 +23,10 @@ package org.zanata.rest.service;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +48,6 @@ import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.zanata.common.ContentState;
 import org.zanata.common.EntityStatus;
 import org.zanata.common.LocaleId;
@@ -343,8 +343,8 @@ public class StatisticsServiceImpl implements StatisticsResource {
         List<Object[]> data =
                 textFlowTargetHistoryDAO.getUserContributionStatisticInVersion(
                         version.getId(), person.getId(),
-                        dateRange.getFromDate().toDate(),
-                        dateRange.getToDate().toDate());
+                        Date.from(dateRange.getFromDate().toInstant()),
+                        Date.from(dateRange.getToDate().toInstant()));
 
         for (Object[] entry : data) {
             int count = ((BigDecimal) entry[0]).intValue();
@@ -456,19 +456,20 @@ public class StatisticsServiceImpl implements StatisticsResource {
         HPerson person =
                 findPersonOrExceptionOnNotFound(username);
         DateRange dateRange = DateRange.from(dateRangeParam, userTimeZoneID);
-        DateTime fromDate = dateRange.getFromDate();
-        DateTime toDate = dateRange.getToDate();
+        ZonedDateTime fromDate = dateRange.getFromDate();
+        ZonedDateTime toDate = dateRange.getToDate();
 
-        DateTimeZone userZone = dateRange.getTimeZone();
+        ZoneId userZone = dateRange.getTimeZone();
         DateTimeFormatter dateFormatter =
-                DateTimeFormat.forPattern(DATE_FORMAT)
+                DateTimeFormatter.ofPattern(DATE_FORMAT)
                         .withZone(userZone);
 
         // TODO system time zone should be persisted in database
-        DateTimeZone systemZone = DateTimeZone.getDefault();
+        ZoneId systemZone = ZoneId.systemDefault();
 
-        Optional<DateTimeZone> userZoneOpt;
-        if (userZone.getStandardOffset(0) != systemZone.getStandardOffset(0)) {
+        Optional<ZoneId> userZoneOpt;
+        Instant asAt = toDate.toInstant();
+        if (userZone.getRules().getOffset(asAt) != systemZone.getRules().getOffset(asAt)) {
             userZoneOpt = Optional.of(userZone);
         } else {
             userZoneOpt = Optional.absent();
@@ -476,7 +477,7 @@ public class StatisticsServiceImpl implements StatisticsResource {
 
         List<TranslationMatrix> translationMatrixList =
                 textFlowTargetHistoryDAO.getUserTranslationMatrix(person,
-                        fromDate, toDate, userZoneOpt, systemZone,
+                        fromDate.toInstant(), toDate.toInstant(), userZoneOpt, systemZone,
                         new UserMatrixResultTransformer(entityManager, dateFormatter));
 
         return translationMatrixList;
@@ -487,12 +488,12 @@ public class StatisticsServiceImpl implements StatisticsResource {
             ResultTransformer {
         private static final long serialVersionUID = 1L;
         private final EntityManager entityManager;
-        private final DateTimeFormatter dateFormater;
+        private final DateTimeFormatter dateFormatter;
 
         @Override
         public Object transformTuple(Object[] tuple, String[] aliases) {
-            String savedDate = dateFormater.print(
-                    new DateTime(tuple[0]).toDate().getTime());
+            String savedDate = dateFormatter.format(
+                    ((Date) tuple[0]).toInstant());
             HProjectIteration iteration =
                     entityManager.find(HProjectIteration.class,
                             ((BigInteger) tuple[1]).longValue());

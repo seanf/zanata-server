@@ -20,6 +20,8 @@
  */
 package org.zanata.webtrans.server.rpc;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +32,6 @@ import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.zanata.dao.TextFlowDAO;
 import org.zanata.exception.ZanataServiceException;
 import org.zanata.model.HLocale;
@@ -80,7 +79,7 @@ public class GetTransUnitListHandler extends
     private GetTransUnitsNavigationService getTransUnitsNavigationService;
 
     private DateTimeFormatter dateFormatter =
-            DateTimeFormat.forPattern("yyyy-MM-dd");
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
     public GetTransUnitListResult execute(GetTransUnitList action,
@@ -150,9 +149,9 @@ public class GetTransUnitListHandler extends
         return result;
     }
 
-    private DateTime parseDateIfPresent(String dateInString) {
+    private Instant parseDateIfPresent(String dateInString) {
         return Strings.isNullOrEmpty(dateInString) ? null :
-                dateFormatter.parseDateTime(dateInString);
+                dateFormatter.parse(dateInString, Instant::from);
     }
 
     private int getTotalPageIndex(int indexListSize, int countPerPage) {

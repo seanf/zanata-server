@@ -30,8 +30,6 @@ import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.zanata.common.ContentState;
 import org.zanata.dao.TextFlowDAO;
 import org.zanata.model.HLocale;

@@ -21,6 +21,8 @@
 package org.zanata.dao;
 
 import java.math.BigInteger;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -32,8 +34,6 @@ import org.jboss.seam.ScopeType;
 import org.jboss.seam.annotations.AutoCreate;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.zanata.common.ContentState;
 import org.zanata.model.HPerson;
 import org.zanata.model.HTextFlowTarget;
@@ -71,8 +71,8 @@ public class TextFlowTargetHistoryDAO extends
      *
      * @param versionId HProjectIteration identifier
      * @param personId HPerson identifier
-     * @param from start of date range
-     * @param to end of date range
+     * @param fromDate start of date range
+     * @param toDate end of date range
      *
      * @return list of Object[wordCount][contentState][localeId]
      */
@@ -205,8 +205,8 @@ public class TextFlowTargetHistoryDAO extends
      */
     @NativeQuery(value = "need to use union", specificTo = "mysql due to usage of date() and convert_tz() functions.")
     public <T> List<T> getUserTranslationMatrix(
-            HPerson user, DateTime fromDate, DateTime toDate,
-            Optional<DateTimeZone> userZoneOpt, DateTimeZone systemZone,
+            HPerson user, Instant fromDate, Instant toDate,
+            Optional<ZoneId> userZoneOpt, ZoneId systemZone,
             ResultTransformer resultTransformer) {
         // @formatter:off
         String queryHistory = "select history.id, iter.id as iteration, tft.locale as locale, tf.wordCount as wordCount, history.state as state, history.lastChanged as lastChanged " +
@@ -228,8 +228,9 @@ public class TextFlowTargetHistoryDAO extends
                 "    and tft.last_modified_by_id = :user and (tft.translated_by_id is not null or tft.reviewed_by_id is not null)" +
                 "    and tft.state <> :untranslated and tft.state <> :rejected and tft.automatedEntry =:automatedEntry";
 
+        // NB: we use the same timezones for the entire period
         String convertedLastChanged = convertTimeZoneFunction("lastChanged",
-                userZoneOpt, systemZone);
+                userZoneOpt, systemZone, toDate);
         // @formatter:on
         String dateOfLastChanged = stripTimeFromDateTimeFunction(convertedLastChanged);
         String queryString =
@@ -244,18 +245,19 @@ public class TextFlowTargetHistoryDAO extends
             .setInteger("untranslated", ContentState.New.ordinal())
                 .setInteger("rejected", ContentState.Rejected.ordinal())
             .setBoolean("automatedEntry", false)
-            .setTimestamp("fromDate", fromDate.toDate())
-            .setTimestamp("toDate", toDate.toDate())
+            .setTimestamp("fromDate", Date.from(fromDate))
+            .setTimestamp("toDate", Date.from(toDate))
             .setResultTransformer(resultTransformer);
         return query.list();
     }
 
     @VisibleForTesting
     protected String convertTimeZoneFunction(String columnName,
-            Optional<DateTimeZone> userZoneOpt, DateTimeZone systemZone) {
+                                             Optional<ZoneId> userZoneOpt,
+                                             ZoneId systemZone, Instant asAtTime) {
         if (userZoneOpt.isPresent()) {
-            String userOffset = getOffsetAsString(userZoneOpt.get());
-            String systemOffset = getOffsetAsString(systemZone);
+            String userOffset = getOffsetAsString(userZoneOpt.get(), asAtTime);
+            String systemOffset = getOffsetAsString(systemZone, asAtTime);
             return String.format("CONVERT_TZ(%s, '%s', '%s')", columnName, systemOffset, userOffset);
         }
         // no need to convert timezone
@@ -274,15 +276,16 @@ public class TextFlowTargetHistoryDAO extends
                 ((BigInteger) object).longValue());
     }
 
-    private static String getOffsetAsString(DateTimeZone zone) {
-        int standardOffset = zone.getStandardOffset(0);
+    private static String getOffsetAsString(ZoneId zone, Instant asAtTime) {
+        int offsetSec = zone.getRules().getOffset(asAtTime).getTotalSeconds();
         String prefix = "";
-        if (standardOffset < 0) {
+        if (offsetSec < 0) {
             prefix = "-";
-            standardOffset = -standardOffset;
+            offsetSec = -offsetSec;
         }
-        return String.format("%s%02d:00", prefix,
-                TimeUnit.MILLISECONDS.toHours(standardOffset));
+        int hours = (int) TimeUnit.SECONDS.toHours(offsetSec);
+        int min = (int) TimeUnit.SECONDS.toMinutes(offsetSec) % 60;
+        return String.format("%s%02d:%02d", prefix, hours, min);
     }
 
 }
