@@ -1358,7 +1358,7 @@
     </repository>
     <!-- For Okapi and Jericho  -->
     <repository>
-      <id>repo.bitbucket.org</id>
+      <id>okapi-bitbucket</id>
       <url>https://bitbucket.org/okapiframework/maven-repo/src/99bd1e4bef88</url>
     </repository>
   </repositories>
