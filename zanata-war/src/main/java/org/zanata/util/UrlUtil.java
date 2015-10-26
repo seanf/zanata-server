@@ -111,7 +111,7 @@ public class UrlUtil implements Serializable {
     }
 
     public String createNewVersionUrl(String projectSlug) {
-        return contextPath + "/project/add_iteration.seam?projectSlug="
+        return contextPath + "/project/add_iteration.xhtml?projectSlug="
                 + projectSlug;
     }
 
@@ -198,7 +198,7 @@ public class UrlUtil implements Serializable {
     }
 
     public String languageHome() {
-        return contextPath + "/language/home.seam";
+        return contextPath + "/language/home.xhtml";
     }
 
     public String genericErrorPage() {
@@ -210,6 +210,6 @@ public class UrlUtil implements Serializable {
     }
 
     public String home() {
-        return contextPath + "/home.seam";
+        return contextPath + "/home.xhtml";
     }
 }
