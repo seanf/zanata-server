@@ -23,11 +23,15 @@ package org.zanata.transaction;
 import java.util.concurrent.Callable;
 
 import javax.annotation.Resource;
+import javax.ejb.Stateful;
+import javax.ejb.Stateless;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.TransactionManager;
 import javax.transaction.UserTransaction;
 
+import org.apache.deltaspike.jpa.api.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,25 +43,35 @@ import com.google.common.base.Throwables;
  * @author Carlos Munoz <a
  *         href="mailto:camunoz@redhat.com">camunoz@redhat.com</a>
  */
-@Dependent
+@Stateful
 public class TransactionalExecutor {
     private static final Logger log =
             LoggerFactory.getLogger(TransactionalExecutor.class);
 
-    @Inject
-    private UserTransaction userTransaction;
+    // using java:comp/UserTransaction will only work for first thread. I am not
+    // entirely sure the underlying cause but this will work.
+    // see https://home.java.net/node/696522#comment-777077
+//    @Resource(lookup = "java:jboss/TransactionManager")
+//    private TransactionManager transactionManager;
 
+//    @Inject
+//    private UserTransaction userTransaction;
+
+    @Transactional
     public <R> R runInTransaction(Callable<R> function) throws Exception {
         R result = null;
         try {
 //            transactionManager.setTransactionTimeout(30);
-            userTransaction.begin();
+//            transactionManager.begin();
+//            userTransaction.begin();
             result = function.call();
-            userTransaction.commit();
+//            transactionManager.commit();
+//            userTransaction.commit();
         } catch (Throwable t) {
             log.error("error running in transaction",
                     Throwables.getRootCause(t));
-            userTransaction.rollback();
+//            transactionManager.rollback();
+//            userTransaction.rollback();
         }
         return result;
     }
