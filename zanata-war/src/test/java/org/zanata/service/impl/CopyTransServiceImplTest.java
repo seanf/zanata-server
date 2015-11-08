@@ -30,6 +30,8 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.dbunit.operation.DatabaseOperation;
 import org.hibernate.search.impl.FullTextSessionImpl;
 import org.hibernate.search.jpa.Search;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.zanata.seam.security.ZanataJpaIdentityStore;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -63,6 +65,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.zanata.util.CdiRule;
+import org.zanata.util.RepeatRule;
+import org.zanata.util.ServiceLocator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.zanata.common.ContentState.Approved;
@@ -83,7 +88,14 @@ import static org.zanata.service.impl.ExecutionHelper.cartesianProduct;
  */
 @RunWith(DataProviderRunner.class)
 public class CopyTransServiceImplTest extends ZanataDbunitJpaTest {
+    private final CdiRule cdiRule = new CdiRule();
     private SeamAutowire seam = SeamAutowire.instance();
+
+    // we have to annotate the rule method, otherwise Weld blows up about the public field
+    @Rule
+    public CdiRule cdiRule() {
+        return cdiRule;
+    }
 
     @Override
     protected void prepareDBUnitOperations() {
@@ -299,8 +311,10 @@ public class CopyTransServiceImplTest extends ZanataDbunitJpaTest {
     @Test
     public void reuseTranslationsFromObsoleteDocuments() throws Exception {
         ProjectIterationDAO projectIterationDAO =
-                seam.autowire(ProjectIterationDAO.class);
-        DocumentDAO documentDAO = seam.autowire(DocumentDAO.class);
+                ServiceLocator.instance().getInstance(ProjectIterationDAO.class);
+//                seam.autowire(ProjectIterationDAO.class);
+        DocumentDAO documentDAO = ServiceLocator.instance().getInstance(DocumentDAO.class);
+                //seam.autowire(DocumentDAO.class);
 
         // Make all documents obsolete
         HProjectIteration version =
@@ -311,7 +325,8 @@ public class CopyTransServiceImplTest extends ZanataDbunitJpaTest {
             documentDAO.makePersistent(doc);
         }
 
-        ProjectDAO projectDAO = seam.autowire(ProjectDAO.class);
+        ProjectDAO projectDAO = ServiceLocator.instance().getInstance(ProjectDAO.class);
+                // seam.autowire(ProjectDAO.class);
         HProject project = projectDAO.getBySlug("different-project");
         assert project != null;
         for (HProjectIteration it : project.getProjectIterations()) {
